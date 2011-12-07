@@ -276,12 +276,9 @@ class Actor(object):
         self._log = logging.getLogger(self.name)
 
     def __del__(self):
-        """
-        Send a *bye* message to the :class:`AnnounceServer` when the
-        :class:`Actor` object is destroyed.
-
-        """
-        self.close()
+        # disconnect object if garbage collect the instance.
+        if self._announce.connected:
+            self.close()
 
     def __enter__(self):
         self.connect()
@@ -317,6 +314,9 @@ class Actor(object):
         self._log.debug('connected')
 
     def close(self):
+        """
+        Send a *bye* message to the :class:`AnnounceServer` and disconnect.
+        """
         self._announce.bye(self)
         self._announce.close()
         self._mailbox.stop()
@@ -572,6 +572,7 @@ class AnnounceClient(object):
             self._nodes.append(self._client)
         self._handler = handler
         self._log = logging.getLogger(self.name)
+        self.connected = False
 
     @property
     def nodes(self):
@@ -581,11 +582,13 @@ class AnnounceClient(object):
         if self._subscriber:
             self._subscriber.connect()
         self._client.connect()
+        self.connected = True
 
     def close(self):
         if self._subscriber:
             self._subscriber.close()
         self._client.close()
+        self.connected = False
 
     def send_to(self, dst, msg):
         self._log.debug('message %s#%d' % (msg.type, msg.id))
