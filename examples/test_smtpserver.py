@@ -8,10 +8,8 @@ to see it works
 import re
 import sys
 sys.path = ['..'] + sys.path
-import subprocess
 import logging
 import yaml
-import time
 
 from gevent import socket
 import gevent.server
