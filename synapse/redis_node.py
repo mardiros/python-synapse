@@ -10,12 +10,6 @@ from redis.client import Redis
 
 from synapse.node import Node, registerNode as regNode
 
-
-"""
-pip install git+https://github.com/mardiros/redis-py.git
-
-"""
-
 parse_uri_re = re.compile(
     '''redis://
     (?:(?:[^:]+:)?(?P<passwd>:[^@]+)@)?  # password
