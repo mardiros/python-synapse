@@ -43,7 +43,7 @@ Test a specific feature:
 
 - Node zmq tests
 
-    $ python setup.py -s synapses.tests.test_node.ZMQTestCase
+    $ python setup.py -s synapses.tests.test_zmqnode
     
 
 
