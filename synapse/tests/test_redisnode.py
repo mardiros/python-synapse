@@ -98,6 +98,7 @@ class RedisTestCase(TestCase):
 
         subglet = gevent.spawn(sub.loop)
         pub.send("puslished_message 1")
+        gevent.sleep(.2)
         self.assertEquals(hdl.msg, "puslished_message 1")
         subglet.kill()
 
