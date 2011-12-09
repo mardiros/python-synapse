@@ -11,6 +11,7 @@ class RedisTestCase(TestCase):
         from synapse import node
         registerNode()
         self.assertTrue('redis' in node.node_registry)
+        del node.node_registry['redis']
 
     def test_redis_queue(self):
         import gevent
