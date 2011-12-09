@@ -86,9 +86,7 @@ class RedisPublisher(RedisNode):
     def send(self, msg):
         """
         Send a message
-        :param  dst: object that contains a send() socket interface
         :param  msg: serializable string
-
         """
         self._lock.acquire()
         if self._method == 'pubsub':
