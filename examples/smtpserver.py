@@ -4,10 +4,15 @@ This is an SMTP Relay server built on top of synapse.
 Of course, do not use on it a production environment.
 You must have a good DNS/reverse DNS configuration
 to see it works
+
+::
+
+    $ export PYTHONPATH=.
+    $ python examples/start_announcer.py &
+    $ python examples/test_smtpserver.py
+
 """
 import re
-import sys
-sys.path = ['..'] + sys.path
 import logging
 import yaml
 
@@ -47,13 +52,13 @@ config = {
     }
 
 
-node_conf = yaml.load(file('config.yaml'))
+node_conf = yaml.load(file('examples/config.yaml'))
 node_conf.update(config['smtp'])
 
-redispub_conf = yaml.load(file('config.yaml'))
+redispub_conf = yaml.load(file('examples/config.yaml'))
 redispub_conf.update(config['redis_pub'])
 
-redissub_conf = yaml.load(file('config.yaml'))
+redissub_conf = yaml.load(file('examples/config.yaml'))
 redissub_conf.update(config['redis_sub'])
 
 
@@ -317,8 +322,6 @@ class RelayActor(node.Actor):
 
 
 node.registerNode('smtp', {'roles': {'server': SMTPServer}})
-redis_node.registerNode()
-
 
 if __name__ == '__main__':
     import logging

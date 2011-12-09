@@ -1,4 +1,5 @@
-"""Will test that a totally isolated greenlet performing IO can life along
+"""
+Will test that a totally isolated greenlet performing IO can life along
 synapse
 
 Node1 and Node2 will do ping-pong calls
@@ -14,25 +15,41 @@ each other
 It will also be able to serve page (/) on 8088 (but waits 10s before sending
 the response)
 
+
+Usage:
+
+  Open a shell in the parent directory of this file.
+
+::
+
+    $ export PYTHONPATH=.
+    $ python examples/start_announcer.py &
+    $ python examples/pingpong.py
+
 """
 
 import yaml
+
+import gevent
+from gevent.wsgi import WSGIServer
+
 from synapse import node, message
 
-from gevent.wsgi import WSGIServer
-import gevent
 
 node1_conf = {
     'name': 'node1',
     'uri': 'ipc://./node1.unix'
 }
 
+
 node2_conf = {
     'name': 'node2',
     'uri': 'ipc://./node2.unix'
 }
 
+
 class Node1(node.Actor):
+
     def __init__(self, config):
         super(Node1, self).__init__(config)
         node.poller.add_periodical_handler(self.periodical, 5)
@@ -47,6 +64,7 @@ class Node1(node.Actor):
     @node.async
     def on_message_ack(self, actor, request):
         self._log.info("received a AckMessage")
+
 
 class Node2(node.Actor):
     def __init__(self, config):
@@ -64,8 +82,12 @@ class Node2(node.Actor):
         self._log.info("received a AckMessage, replying a NackMessage")
         return message.NackMessage(self.name, self.name)
 
+
 def create_wsgiserver():
-    # from https://bitbucket.org/denis/gevent/src/26f61c2d72f8/examples/wsgiserver.py
+
+# written from the gevent sample at:
+# https://bitbucket.org/denis/gevent/src/26f61c2d72f8/examples/wsgiserver.py
+
     def hello_world(env, start_response):
         if env['PATH_INFO'] == '/':
             start_response('200 OK', [('Content-Type', 'text/html')])
@@ -74,6 +96,7 @@ def create_wsgiserver():
         else:
             start_response('404 Not Found', [('Content-Type', 'text/html')])
             return ['<h1>Not Found</h1>']
+
     logging.info('starting WSGIServer on 8088')
     WSGIServer(('', 8088), hello_world).serve_forever()
 
@@ -88,7 +111,7 @@ if __name__ == '__main__':
     formatter = logging.Formatter('%(name)s: %(levelname)s %(message)s')
     stream.setFormatter(formatter)
     logger.addHandler(stream)
-    common_config = yaml.load(file('config.yaml'))
+    common_config = yaml.load(file('examples/config.yaml'))
     node1_conf.update(common_config)
     node2_conf.update(common_config)
     logging.info('starting node 1')
