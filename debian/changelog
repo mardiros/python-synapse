@@ -1,3 +1,8 @@
+python-synapse (0.3) unstable; urgency=low
+
+  * add node deconnection support
+  * implement redis support for queuing
+
 python-synapse (0.2-1) unstable; urgency=low
 
   * clearer __repr__ return for ZMQNode classes
