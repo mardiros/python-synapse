@@ -442,11 +442,11 @@ class Actor(object):
             if reply is None:
                 reply = AckMessage(self.name)
             return self._codec.dumps(reply)
-
+    '''
     @catch_exceptions(MessageException)
     def on_announce(self, msgstring):
         print msgstring
-
+    '''
     def on_message_hello(self, actor, msg):
         if msg.uri == self._uri or not self._uri:
             return
@@ -510,7 +510,6 @@ class AnnounceServer(object):
 
     def handle_message(self, msgstring):
         msg = self._codec.loads(msgstring)
-        print repr(msg)
         if msg.type == 'hello':
             self._log.debug('hello from %s' % msg.src)
             self._nodes[msg.src] = msg.uri
