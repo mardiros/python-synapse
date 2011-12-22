@@ -71,6 +71,8 @@ import gevent
 import gevent.event
 import gevent.queue
 import gevent.coros
+from gevent.timeout import Timeout
+
 
 from synapse.message import (makeCodec,
                             HelloMessage, ByeMessage,
@@ -315,7 +317,14 @@ class Actor(object):
         """
         Send a *bye* message to the :class:`AnnounceServer` and disconnect.
         """
-        self._announce.bye(self)
+        timeout = Timeout(1)
+        timeout.start()
+        try:
+            self._announce.bye(self)
+        except Timeout:
+            pass
+        finally:
+            timeout.cancel()
         self._announce.close()
         self._mailbox.stop()
         [gevent.kill(g) for g in (self._greenlet, self._greenlet_ann_sub) if g]
