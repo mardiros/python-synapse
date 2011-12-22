@@ -137,7 +137,6 @@ class ZMQSubscribe(ZMQNode):
         self._socket = _context.socket(zmq.SUB)
         self._socket.connect(self._uri)
         self._socket.setsockopt(zmq.SUBSCRIBE, '')
-        print self._uri
 
     def loop(self):
         while True:
