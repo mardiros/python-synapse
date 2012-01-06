@@ -798,6 +798,10 @@ class EventPoller(Poller):
             """Catch exceptions and log them"""
             try:
                 return handler(*args, **kwargs)
+             except gevent.GreenletExit, ge:
+                 # A special exception that kills the greenlet silently.
+                 # The greenlet is considered successful.
+                 self._log.debug("greenlet %s ended" % handler)
             except Exception:
                 import traceback
                 map(self._log.error, traceback.format_exc().splitlines())
