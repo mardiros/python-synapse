@@ -721,6 +721,9 @@ class EventPoller(Poller):
         while handler() is not False:
             gevent.sleep(timeout)
 
+    def wait(self):
+        node.poller.periodical_loop(lambda: self._loop_again, 60)
+
     def register(self, node):
         """Register a new node in the poller.
         If the given node is a `server`, we need to spawn it's :meth:`loop`
