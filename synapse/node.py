@@ -722,7 +722,7 @@ class EventPoller(Poller):
             gevent.sleep(timeout)
 
     def wait(self):
-        node.poller.periodical_loop(lambda: self._loop_again, 60)
+        self.periodical_loop(lambda: self._loop_again, 60)
 
     def register(self, node):
         """Register a new node in the poller.
