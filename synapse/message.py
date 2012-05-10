@@ -2,7 +2,10 @@
 # -*- coding: utf8 -*-
 
 import random
-import simplejson as json
+try:
+    import simplejson as json
+except ImportError:
+    import json
 
 
 class MessageException(Exception):
