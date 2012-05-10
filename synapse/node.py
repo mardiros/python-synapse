@@ -62,13 +62,18 @@ period is 10s, and the handler call takes 5s, the total time for a loop will be
    the first event in the chain.
 
 """
+from __future__ import with_statement
+
 import logging
 import os
 
 import gevent
+import gevent.core
 import gevent.event
 import gevent.queue
 import gevent.coros
+from gevent.timeout import Timeout
+
 
 from synapse.message import (makeCodec,
                             HelloMessage, ByeMessage,
@@ -313,7 +318,14 @@ class Actor(object):
         """
         Send a *bye* message to the :class:`AnnounceServer` and disconnect.
         """
-        self._announce.bye(self)
+        timeout = Timeout(1)
+        timeout.start()
+        try:
+            self._announce.bye(self)
+        except Timeout:
+            pass
+        finally:
+            timeout.cancel()
         self._announce.close()
         self._mailbox.stop()
         [gevent.kill(g) for g in (self._greenlet, self._greenlet_ann_sub) if g]
@@ -440,11 +452,11 @@ class Actor(object):
             if reply is None:
                 reply = AckMessage(self.name)
             return self._codec.dumps(reply)
-
+    '''
     @catch_exceptions(MessageException)
     def on_announce(self, msgstring):
         print msgstring
-
+    '''
     def on_message_hello(self, actor, msg):
         if msg.uri == self._uri or not self._uri:
             return
@@ -508,7 +520,6 @@ class AnnounceServer(object):
 
     def handle_message(self, msgstring):
         msg = self._codec.loads(msgstring)
-        print repr(msg)
         if msg.type == 'hello':
             self._log.debug('hello from %s' % msg.src)
             self._nodes[msg.src] = msg.uri
@@ -645,7 +656,6 @@ class EventPoller(Poller):
         self._pid = os.getpid()
         self._name = 'event.poller@%d' % self._pid
         self._log = logging.getLogger(self._name)
-        self._task = gevent.spawn(self.loop)
         self._loop_again = True
         self._greenlets = []
         self._periodical_handlers = []
@@ -691,10 +701,6 @@ class EventPoller(Poller):
                                            handler, timeout)
         self._periodical_handlers.append(period)
 
-    def loop(self):
-        while self._loop_again:
-            gevent.core.loop()
-
     def stop(self):
         [g.kill() for g in self._periodical_handlers]
         self._periodical_handlers = []
@@ -716,12 +722,7 @@ class EventPoller(Poller):
             gevent.sleep(timeout)
 
     def wait(self):
-        """Simply waits until the greenlet of the poller stops"""
-        import gc
-        collected = gc.collect()
-        self._log.debug('GC collected: %d; garbage: %s' % \
-                      (collected, gc.garbage))
-        return self._task.join()
+        self.periodical_loop(lambda: self._loop_again, 60)
 
     def register(self, node):
         """Register a new node in the poller.
@@ -788,6 +789,10 @@ class EventPoller(Poller):
             """Catch exceptions and log them"""
             try:
                 return handler(*args, **kwargs)
+            except gevent.GreenletExit, ge:
+                 # A special exception that kills the greenlet silently.
+                 # The greenlet is considered successful.
+                 self._log.debug("greenlet %s ended" % handler)
             except Exception:
                 import traceback
                 map(self._log.error, traceback.format_exc().splitlines())

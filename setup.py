@@ -10,7 +10,7 @@ README = open(os.path.join(here, 'README.rst')).read()
 
 
 setup(name='synapse',
-      version       = '0.2',
+      version       = '0.3',
       description   = 'Distributed communication module',
       long_description=README, # + '\n\n' +  CHANGES,
       author        = 'Greg Leclercq',
