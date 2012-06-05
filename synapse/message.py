@@ -174,7 +174,10 @@ class DateTimeJSONEncoder(json.JSONEncoder):
                 isinstance(obj, datetime.time):
             return obj.isoformat()
         elif isinstance(obj, xmlrpclib.DateTime):
-            return datetime.datetime.strptime(obj.value, "%Y%m%dT%H:%M:%S")
+            data = obj.value.replace('-','').replace(' ','T')
+            if '.' not in data:
+                data += '.000'
+            return datetime.datetime.strptime(data, "%Y%m%dT%H:%M:%S.%f")
         else:
             return super(self.__class__, self).default(obj)
 
