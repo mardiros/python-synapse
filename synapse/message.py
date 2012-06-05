@@ -180,7 +180,8 @@ class DateTimeJSONEncoder(json.JSONEncoder):
             data = obj.value.replace('-','').replace(' ','T')
             if '.' not in data:
                 data += '.000'
-            return datetime.datetime.strptime(data, "%Y%m%dT%H:%M:%S.%f")
+            return datetime.datetime.strptime(data,
+                "%Y%m%dT%H:%M:%S.%f").isoformat()
         else:
             return super(self.__class__, self).default(obj)
 
