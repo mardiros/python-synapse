@@ -517,24 +517,3 @@ class PollerTestCase(TestCase):
         def buggy():
             raise TypeError()
         self.assertRaises(TypeError, buggy)
-
-    def test_waiteventpoller(self):
-        import gevent
-        from synapse.node import EventPoller
-
-        class DummyPoller(EventPoller):
-
-            def __init__(self, conf):
-                EventPoller.__init__(self, conf)
-                self.nb_run = 0
-
-            def loop(self):
-                while self._loop_again:
-                    self.nb_run += 1
-                    gevent.sleep(1)
-
-        dp = DummyPoller({})
-        gevent.sleep(0.5)
-        dp._loop_again = 0
-        dp.wait()
-        self.assertEquals(dp.nb_run, 1)

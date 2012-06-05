@@ -68,6 +68,7 @@ import logging
 import os
 
 import gevent
+import gevent.core
 import gevent.event
 import gevent.queue
 import gevent.coros
@@ -655,7 +656,6 @@ class EventPoller(Poller):
         self._pid = os.getpid()
         self._name = 'event.poller@%d' % self._pid
         self._log = logging.getLogger(self._name)
-        self._task = gevent.spawn(self.loop)
         self._loop_again = True
         self._greenlets = []
         self._periodical_handlers = []
@@ -701,10 +701,6 @@ class EventPoller(Poller):
                                            handler, timeout)
         self._periodical_handlers.append(period)
 
-    def loop(self):
-        while self._loop_again:
-            gevent.core.loop()
-
     def stop(self):
         [g.kill() for g in self._periodical_handlers]
         self._periodical_handlers = []
@@ -726,12 +722,7 @@ class EventPoller(Poller):
             gevent.sleep(timeout)
 
     def wait(self):
-        """Simply waits until the greenlet of the poller stops"""
-        import gc
-        collected = gc.collect()
-        self._log.debug('GC collected: %d; garbage: %s' % \
-                      (collected, gc.garbage))
-        return self._task.join()
+        self.periodical_loop(lambda: self._loop_again, 60)
 
     def register(self, node):
         """Register a new node in the poller.

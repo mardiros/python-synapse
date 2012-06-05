@@ -35,15 +35,16 @@ Test a specific feature:
 
 - Message
 
-    $ python setup.py -s synapses.tests.test_message
+    $ python setup.py test -s synapse.tests.test_message
     
 - All Node features
 
-    $ python setup.py -s synapses.tests.test_node
+    $ python setup.py test -s synapse.tests.test_node
 
-- Node zmq tests
+- Node implementations
 
-    $ python setup.py -s synapses.tests.test_zmqnode
+    $ python setup.py test -s synapse.tests.test_redisnode
+    $ python setup.py test -s synapse.tests.test_zmqnode
     
 
 
