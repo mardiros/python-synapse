@@ -433,7 +433,7 @@ class Actor(object):
             self.wake_message_worker(msg)
             return
 
-        if hasattr(handler, 'async'):
+        if getattr(handler, 'async', False):
             self._log.debug('handling async call for message #%d' % msg.id)
             replystring = self._codec.dumps(AckMessage(self.name))
             self._mailbox._socket.send(replystring)
