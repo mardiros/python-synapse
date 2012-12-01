@@ -275,6 +275,9 @@ class Actor(object):
                                                         'handle_message', None)
         self._pendings = {}
         self._log = logging.getLogger(self.name)
+        # working queue for async jobs
+        self._queue = gevent.queue.Queue()
+        self._worker = gevent.spawn(self.worker)
 
     def __del__(self):
         # disconnect object if garbage collect the instance.
@@ -298,6 +301,27 @@ class Actor(object):
     @property
     def name(self):
         return self._name
+
+    def worker(self):
+        while True:
+            msgstring = self._queue.get()
+            handler, msg = self._deserialize(msgstring)
+            result = handler(self, msg)
+            gevent.sleep(0)
+
+    def _deserialize(self, msgstring):
+        try:
+            msg = self._codec.loads(msgstring)
+            self._log.debug('handling message #%d' % msg.id)
+        except CodecException, err:
+            raise MessageInvalidException(str(err))
+
+        handler = getattr(self, 'on_message_%s' % msg.type, self._handler)
+        if not handler:
+            errmsg = 'cannot handle message %s #%d' % (msg.type, msg.id)
+            raise MessageInvalidException(errmsg)
+        return handler, msg
+
 
     def connect(self):
         """
@@ -326,6 +350,7 @@ class Actor(object):
             pass
         finally:
             timeout.cancel()
+        gevent.kill(self._worker)
         self._announce.close()
         self._mailbox.stop()
         [gevent.kill(g) for g in (self._greenlet, self._greenlet_ann_sub) if g]
@@ -415,16 +440,7 @@ class Actor(object):
 
         """
 
-        try:
-            msg = self._codec.loads(msgstring)
-            self._log.debug('handling message #%d' % msg.id)
-        except CodecException, err:
-            raise MessageInvalidException(str(err))
-
-        handler = getattr(self, 'on_message_%s' % msg.type, self._handler)
-        if not handler:
-            errmsg = 'cannot handle message %s #%d' % (msg.type, msg.id)
-            raise MessageInvalidException(msg)
+        handler, msg = self._deserialize(msgstring)
 
         if msg.id in self._pendings:
             self._log.debug('resume pending worker for message #%d' % msg.id)
@@ -437,7 +453,7 @@ class Actor(object):
             self._log.debug('handling async call for message #%d' % msg.id)
             replystring = self._codec.dumps(AckMessage(self.name))
             self._mailbox._socket.send(replystring)
-            poller.spawn(handler, self, msg)
+            self._queue.put_nowait(msgstring)
             return
 
         self._log.debug('handle synchronous message #%d' % msg.id)
