@@ -4,6 +4,9 @@
 from unittest import TestCase
 
 
+REDIS_URI = 'redis://127.0.0.1/0'
+
+
 class RedisTestCase(TestCase):
 
     def test_registerNode(self):
@@ -16,10 +19,10 @@ class RedisTestCase(TestCase):
     def test_redis_queue(self):
         import gevent
         from synapse.redis_node import RedisPublisher, RedisSubscriber
-        conf_pub = {'uri': 'redis://127.0.0.1/0?method=queue&channel=test',
+        conf_pub = {'uri': '%s?method=queue&channel=test' % REDIS_URI,
                     'name': 'redis_pub'}
 
-        conf_sub = {'uri': 'redis://127.0.0.1/0?method=queue&channel=test',
+        conf_sub = {'uri': '%s?method=queue&channel=test' % REDIS_URI,
                     'name': 'redis_sub'}
 
         class Hdl(object):
@@ -42,10 +45,10 @@ class RedisTestCase(TestCase):
         self.assertRaises(NotImplementedError, pub.recv)
 
         self.assertEquals(sub.uri, pub.uri)
-        self.assertEquals(repr(sub), '<RedisSubscriber redis_sub '\
-                          '(redis://127.0.0.1/0?method=queue&channel=test)>')
-        self.assertEquals(repr(pub), '<RedisPublisher redis_pub '\
-                          '(redis://127.0.0.1/0?method=queue&channel=test)>')
+        self.assertEquals(repr(sub), '<RedisSubscriber redis_sub '
+                          '(%s?method=queue&channel=test)>' % REDIS_URI)
+        self.assertEquals(repr(pub), '<RedisPublisher redis_pub '
+                          '(%s?method=queue&channel=test)>' % REDIS_URI)
 
         self.assertRaises(NotImplementedError, sub.send, "")
 
@@ -63,10 +66,10 @@ class RedisTestCase(TestCase):
     def test_redis_pubsub(self):
         import gevent
         from synapse.redis_node import RedisPublisher, RedisSubscriber
-        conf_pub = {'uri': 'redis://127.0.0.1/0?method=pubsub&channel=test',
+        conf_pub = {'uri': '%s?method=pubsub&channel=test' % REDIS_URI,
                     'name': 'redis_pub'}
 
-        conf_sub = {'uri': 'redis://127.0.0.1/0?method=pubsub&channel=test',
+        conf_sub = {'uri': '%s?method=pubsub&channel=test' % REDIS_URI,
                     'name': 'redis_sub'}
 
         class Hdl(object):
@@ -81,7 +84,7 @@ class RedisTestCase(TestCase):
         pub = RedisPublisher(conf_pub)
         pub.start()
         pub.send("puslished_message 0")
-        #pub.send("puslished_message 1")
+        # pub.send("puslished_message 1")
 
         sub = RedisSubscriber(conf_sub, hdl.sub_handler)
         sub.connect()
@@ -89,10 +92,10 @@ class RedisTestCase(TestCase):
         self.assertRaises(NotImplementedError, pub.recv)
 
         self.assertEquals(sub.uri, pub.uri)
-        self.assertEquals(repr(sub), '<RedisSubscriber redis_sub '\
-                          '(redis://127.0.0.1/0?method=pubsub&channel=test)>')
-        self.assertEquals(repr(pub), '<RedisPublisher redis_pub '\
-                          '(redis://127.0.0.1/0?method=pubsub&channel=test)>')
+        self.assertEquals(repr(sub), '<RedisSubscriber redis_sub '
+                          '(%s?method=pubsub&channel=test)>' % REDIS_URI)
+        self.assertEquals(repr(pub), '<RedisPublisher redis_pub '
+                          '(%s?method=pubsub&channel=test)>' % REDIS_URI)
 
         self.assertRaises(NotImplementedError, sub.send, "")
 

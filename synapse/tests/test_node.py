@@ -153,7 +153,7 @@ class ActorTestCase(TestCase):
             def handler_noresponse(self, actor, msg):
                 self.noresponse_actor = actor
                 self.noresponse_msg = msg
-                #will return an ack if None return here
+                # will return an ack if None return here
 
         hdl = Handler()
 
@@ -251,7 +251,7 @@ class ActorTestCase(TestCase):
 
         actor2.sendrecv('actor1',
                         DummyMessage('actor2 async response', dummy.id))
-        #gevent.sleep(0.) # force run in the next eventloop cycle
+        # gevent.sleep(0.) # force run in the next eventloop cycle
         gevent.sleep(1)
 
         self.assertEquals(hdl.async_response, 'actor2 async response')

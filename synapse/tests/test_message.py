@@ -10,10 +10,10 @@ class JSONEncoderTestCase(TestCase):
         import json
         from synapse import message
         msg = message.makeMessage({
-                'type': 'reply',
-                'src': 'tester',
-                'data': date,
-                'id': 0})
+            'type': 'reply',
+            'src': 'tester',
+            'data': date,
+            'id': 0})
         codec = message.makeCodec({'type': 'jsonrpc'})
         msgstring = codec.dumps(msg)
         json_msg = json.loads(msgstring)
@@ -49,10 +49,10 @@ class JSONEncoderTestCase(TestCase):
 
         xmlrpc_date = xmlrpclib.DateTime()
         msg = message.makeMessage({
-                'type': 'reply',
-                'src': 'tester',
-                'data': xmlrpc_date,
-                'id': 0})
+            'type': 'reply',
+            'src': 'tester',
+            'data': xmlrpc_date,
+            'id': 0})
         codec = message.makeCodec({'type': 'jsonrpc'})
         msgstring = codec.dumps(msg)
 

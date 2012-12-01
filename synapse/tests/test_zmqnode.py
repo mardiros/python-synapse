@@ -6,7 +6,7 @@ from unittest import TestCase
 class ZMQTestCase(TestCase):
 
     def test_registerNode(self):
-        from synapse.zmq_node  import registerNode
+        from synapse.zmq_node import registerNode
         from synapse import node
         registerNode()
         self.assertTrue('zmq' in node.node_registry)
