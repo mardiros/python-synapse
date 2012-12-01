@@ -66,6 +66,7 @@ from __future__ import with_statement
 
 import logging
 import os
+import itertools
 
 import gevent
 import gevent.core
@@ -486,6 +487,27 @@ class Actor(object):
         if msg.src == self.name:
             return
         self._nodes.remove(msg.src)
+
+
+class Ventilator(node.Actor):
+    """
+    Actor that dispatch message to other actors.
+    This is a way to load balance.
+
+    To use this class, the config param must contain a `workers` entrie that
+    contain a list of actor names to ventilate.
+    """
+
+    def __init__(self, config, handler=None):
+        super(Ventilator, self).__init__(config, handler)
+        self.workers = itertools.cycle(config['workers'])
+
+    def on_message(self, msgstring):
+        w = self.workers.next()
+        msg = self._codec.loads(msgstring)
+        self._log.debug("%s proxy message to %s" % (self.name, w)
+        response = self.sendrecv(w, msg)
+        return self._codec.dumps(response)
 
 
 class AnnounceServer(object):
