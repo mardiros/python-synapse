@@ -97,7 +97,7 @@ class ZMQClient(ZMQNode):
         self._socket = _context.socket(zmq.REQ)
         self._socket.connect(self._uri)
         # client side do not need to be registred, they are not looping
-        #poller.register(self)
+        # poller.register(self)
 
     def close(self):
         self._socket.close()
@@ -150,9 +150,10 @@ class ZMQSubscribe(ZMQNode):
     def close(self):
         self._socket.close()
 
+
 def registerNode():
-    regNode('zmq', {'roles': {'client':   ZMQClient,
-                              'server':   ZMQServer,
-                              'publish':  ZMQPublish,
+    regNode('zmq', {'roles': {'client': ZMQClient,
+                              'server': ZMQServer,
+                              'publish': ZMQPublish,
                               'subscribe': ZMQSubscribe
                               }})

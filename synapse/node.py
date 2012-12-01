@@ -76,14 +76,15 @@ from gevent.timeout import Timeout
 
 
 from synapse.message import (makeCodec,
-                            HelloMessage, ByeMessage,
-                            WhereIsMessage, IsAtMessage,
-                            UnknownNodeMessage, AckMessage,
-                            NackMessage, MessageException,
-                            MessageInvalidException,
-                            CodecException)
+                             HelloMessage, ByeMessage,
+                             WhereIsMessage, IsAtMessage,
+                             UnknownNodeMessage, AckMessage,
+                             NackMessage, MessageException,
+                             MessageInvalidException,
+                             CodecException)
 
 # decorators
+
 
 def async(func):
     """Use this simple decorator to tell when a callback is asynchronous"""
@@ -97,8 +98,9 @@ def catch_exceptions(*exceptions):
             try:
                 return method(actor, *args, **kwargs)
             except Exception, err:
+                nackmsg = NackMessage(actor.name, str(err))
                 raise NodeException(str(err),
-                        actor._codec.dumps(NackMessage(actor.name, str(err))))
+                                    actor._codec.dumps(nackmsg))
         return wrapped_method
     return wrapper
 
@@ -169,7 +171,7 @@ class NodeDirectory(object):
         self._config = {
             'type': config['type'],
             'role': 'client'
-            }
+        }
         self._announce = announce
         self._nodes = {}
 
@@ -205,11 +207,11 @@ class NodeDirectory(object):
 
         """
         self._nodes[name] = makeNode({
-                'name': '%s.client' % name,
-                'type': self._config['type'],
-                'role': self._config['role'],
-                'uri':  uri
-                })
+            'name': '%s.client' % name,
+            'type': self._config['type'],
+            'role': self._config['role'],
+            'uri': uri
+        })
         s = self._nodes[name].socket
         if not s or s.closed:
             self._nodes[name].connect()
@@ -263,11 +265,11 @@ class Actor(object):
         self._name = config['name']
         self._codec = makeCodec({'type': config['codec']})
         self._mailbox = makeNode({
-                'name': config['name'],
-                'type': config['type'],
-                'uri':  self._uri,
-                'role': config.get('role', 'server')},
-                self.on_message)
+            'name': config['name'],
+            'type': config['type'],
+            'uri': self._uri,
+            'role': config.get('role', 'server')},
+            self.on_message)
         config['type'] = 'zmq'
         self._announce = AnnounceClient(config, self.on_message)
         self._nodes = NodeDirectory(config, self._announce)
@@ -322,7 +324,6 @@ class Actor(object):
             raise MessageInvalidException(errmsg)
         return handler, msg
 
-
     def connect(self):
         """
         When an actor connects to network, it initializes its nodes and
@@ -370,7 +371,7 @@ class Actor(object):
 
         """
         msg = incoming_msg.get()
-        #assert msg.id == msgid
+        # assert msg.id == msgid
         func(msg)
         del self._pendings[msgid]
 
@@ -405,7 +406,7 @@ class Actor(object):
             self._pendings[msg.id] = incoming_msg
             poller.spawn(self.will_handle, msg.id, incoming_msg, on_recv)
 
-        self._log.debug('handshake reply from %s in sendrecv()' % \
+        self._log.debug('handshake reply from %s in sendrecv()' %
                         node_name)
 
         reply = remote.recv()
@@ -502,18 +503,18 @@ class AnnounceServer(object):
     def __init__(self, config):
         self.name = 'announce.server'
         self._codec = makeCodec({
-                'type': config['codec']})
+            'type': config['codec']})
         self._server = makeNode({
-                'name': self.name,
-                'type': config['type'],
-                'uri':  config['announce']['server_uri'],
-                'role': 'server'},
-                self.handle_message)
+            'name': self.name,
+            'type': config['type'],
+            'uri': config['announce']['server_uri'],
+            'role': 'server'},
+            self.handle_message)
         self._publisher = makeNode({
-                'name': 'announce.publisher',
-                'type': config['type'],
-                'uri':  config['announce']['pubsub_uri'],
-                'role': 'publish'})
+            'name': 'announce.publisher',
+            'type': config['type'],
+            'uri': config['announce']['pubsub_uri'],
+            'role': 'publish'})
 
         self._nodes = {}  # NodeDirectory(config)
         self._log = logging.getLogger(self.name)
@@ -574,23 +575,23 @@ class AnnounceClient(object):
     def __init__(self, config, handler=None):
         self.name = '%s.announce' % config['name']
         self._codec = makeCodec({
-                'type': config['codec']
-                })
+            'type': config['codec']
+        })
         self._nodes = []
         self._client = makeNode({
-                'name': self.name,
-                'type': config['type'],
-                'uri':  config['announce']['server_uri'],
-                'role': 'client'
-                })
+            'name': self.name,
+            'type': config['type'],
+            'uri': config['announce']['server_uri'],
+            'role': 'client'
+        })
         self._nodes.append(self._client)
         self._subscriber = makeNode({
-                'name': '%s.subscribe' % config['name'],
-                'type': config['type'],
-                'uri':  config['announce']['pubsub_uri'],
-                'role': 'subscribe',
-                },
-                self.handle_announce) if handler else None
+            'name': '%s.subscribe' % config['name'],
+            'type': config['type'],
+            'uri': config['announce']['pubsub_uri'],
+            'role': 'subscribe',
+        },
+            self.handle_announce) if handler else None
         if self._subscriber:
             self._nodes.append(self._client)
         self._handler = handler
@@ -714,7 +715,7 @@ class EventPoller(Poller):
         assert(callable(handler))
         assert(timeout > 0)
         period = self.spawn(self.periodical_loop,
-                                           handler, timeout)
+                            handler, timeout)
         self._periodical_handlers.append(period)
 
     def stop(self):
@@ -799,16 +800,16 @@ class EventPoller(Poller):
         """
         # You can's use wraps for callable class (__call__)
         # furthermore keep signature of the method looks not usefull
-        #from functools import wraps
+        # from functools import wraps
         #@wraps(handler)
         def method(*args, **kwargs):
             """Catch exceptions and log them"""
             try:
                 return handler(*args, **kwargs)
             except gevent.GreenletExit, ge:
-                 # A special exception that kills the greenlet silently.
-                 # The greenlet is considered successful.
-                 self._log.debug("greenlet %s ended" % handler)
+                # A special exception that kills the greenlet silently.
+                # The greenlet is considered successful.
+                self._log.debug("greenlet %s ended" % handler)
             except Exception:
                 import traceback
                 map(self._log.error, traceback.format_exc().splitlines())
@@ -826,6 +827,8 @@ node_registry = {}
 """
 node_registry is the registry of different node type
 """
+
+
 def registerNode(name, config):
     """
     function to register a new node type
@@ -834,13 +837,14 @@ def registerNode(name, config):
 
 # factories function
 
+
 def makeNode(config, handler=None):
     """
     factory method to build a node from the synapse node registry.
     """
     if config['type'] not in node_registry:
         mname = '%s_node' % config['type']
-        m = __import__('synapse.'+mname)
+        m = __import__('synapse.' + mname)
         m = getattr(m, mname)
         m.registerNode()
     cls = node_registry[config['type']]['roles'][config['role']]
@@ -848,4 +852,3 @@ def makeNode(config, handler=None):
 
 # create the poller
 poller = EventPoller({})
-

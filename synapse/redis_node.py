@@ -5,7 +5,7 @@ import re
 import logging
 
 import gevent
-#from redis.gevent_client import Redis
+# from redis.gevent_client import Redis
 from redis import connection
 import gevent.socket
 connection.socket = gevent.socket
@@ -149,5 +149,5 @@ class RedisSubscriber(RedisNode):
 
 
 def registerNode():
-    regNode('redis', {'roles': {'publish':  RedisPublisher,
+    regNode('redis', {'roles': {'publish': RedisPublisher,
                                 'subscribe': RedisSubscriber}})
