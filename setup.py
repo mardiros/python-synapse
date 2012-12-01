@@ -27,7 +27,7 @@ setup(name='synapse',
       url='http://github.org/ggreg/python-synapse',
       packages=find_packages(),
       install_requires=requires,
-      test_requires=requires,
+      tests_require=requires,
       zip_safe=False,
       test_suite='synapse'
       )
