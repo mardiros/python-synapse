@@ -489,7 +489,7 @@ class Actor(object):
         self._nodes.remove(msg.src)
 
 
-class Ventilator(node.Actor):
+class Ventilator(Actor):
     """
     Actor that dispatch message to other actors.
     This is a way to load balance.
@@ -505,7 +505,7 @@ class Ventilator(node.Actor):
     def on_message(self, msgstring):
         w = self.workers.next()
         msg = self._codec.loads(msgstring)
-        self._log.debug("%s proxy message to %s" % (self.name, w)
+        self._log.debug("%s proxy message to %s" % (self.name, w))
         response = self.sendrecv(w, msg)
         return self._codec.dumps(response)
 
