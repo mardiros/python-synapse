@@ -693,7 +693,7 @@ class Poller(object):
 class EventPoller(Poller):
     def __init__(self, config, periodic_handler=None):
         self._pid = os.getpid()
-        self._name = 'event.poller@%d' % self._pid
+        self._name = 'event.poller@[%d]' % self._pid
         self._log = logging.getLogger(self._name)
         self._loop_again = True
         self._greenlets = []
