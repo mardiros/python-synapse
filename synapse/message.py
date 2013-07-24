@@ -2,6 +2,7 @@
 # -*- coding: utf8 -*-
 
 import random
+
 try:
     import simplejson as json
 except ImportError:
@@ -150,6 +151,26 @@ class NackMessage(Message):
                 'msg': self.msg}
 
 
+class IsAlive(Message):
+    type = 'is_alive'
+
+    @property
+    def attrs(self):
+        return {}
+
+
+class Alive(Message):
+    type = 'alive'
+
+    def __init__(self, pid, id=None):
+        Message.__init__(self, id)
+        self.pid = pid
+
+    @property
+    def attrs(self):
+        return {'pid': self.pid}
+
+
 class MessageCodec(object):
 
     def loads(self, msgstring):
@@ -233,7 +254,7 @@ def makeMessage(msg):
     """
     msgtmp = msg.copy()
     subclasses = Message.__subclasses__()
-    dispatch = dict((cls.type, cls)for cls in subclasses)
+    dispatch = dict((cls.type, cls) for cls in subclasses)
     msgtype = msgtmp['type']
     del msgtmp['type']
     try:
