@@ -62,7 +62,7 @@ period is 10s, and the handler call takes 5s, the total time for a loop will be
    the first event in the chain.
 
 """
-from __future__ import with_statement
+from __future__ smport with_statement
 
 import logging
 import os
@@ -74,7 +74,7 @@ import gevent.event
 import gevent.queue
 import gevent.coros
 from gevent.timeout import Timeout
-
+from gevent.wsgi import WSGIServer
 
 from synapse.message import (makeCodec,
                              HelloMessage, ByeMessage,
@@ -82,6 +82,7 @@ from synapse.message import (makeCodec,
                              UnknownNodeMessage, AckMessage,
                              NackMessage, MessageException,
                              MessageInvalidException,
+                             IsAlive, Alive,
                              CodecException)
 
 # decorators
@@ -317,6 +318,7 @@ class Actor(object):
             msg = self._codec.loads(msgstring)
             self._log.debug('handling message #%d' % msg.id)
         except CodecException, err:
+            self._log.error('Error while decoding a message', exc_info=True)
             raise MessageInvalidException(str(err))
 
         handler = getattr(self, 'on_message_%s' % msg.type, self._handler)
@@ -488,6 +490,9 @@ class Actor(object):
             return
         self._nodes.remove(msg.src)
 
+    def on_message_is_alive(self, actor, msg):
+        return Alive(os.getpid())
+
 
 class Ventilator(Actor):
     """
@@ -538,8 +543,61 @@ class AnnounceServer(object):
             'uri': config['announce']['pubsub_uri'],
             'role': 'publish'})
 
-        self._nodes = {}  # NodeDirectory(config)
+        self._nodes = NodeDirectory(config)
         self._log = logging.getLogger(self.name)
+
+        if 'monitor' in config:
+            # If monitor has no defined options, it can be a boolean
+            monitor = (config['monitor']
+                       if hasattr(config['monitor'], '__iter__')
+                       else {})
+            self.monitor_timeout = monitor.get('timeout', 10)
+            server = self.create_wsgiserver(
+                monitor.get('host', '0.0.0.0'),
+                monitor.get('port', 12088))
+
+            self._wsgi = gevent.spawn(server.serve_forever)
+
+    def create_wsgiserver(self, monitor_host, monitor_port):
+
+        def application(env, start_response):
+            if env['PATH_INFO'] != '/':
+                start_response('404 Not Found', [('Content-Type', 'text/html')])
+                return ['<h1>Not Found</h1>']
+
+            status = '200 OK'
+            response = {}
+            for node in self._nodes._nodes:
+                try:
+                    response[node] = self.sendrecv(node, IsAlive()).attrs
+                except Timeout:
+                    response[node] = {'status': 'unavailable'}
+                    status = '503 Service Temporarily Unavailable'
+            start_response(status, [('Content-Type', 'application/json')])
+            return [json.dumps(response)]
+
+        self._log.info('starting Monitoring WSGIServer on %i' %
+                       monitor_port)
+        return WSGIServer((monitor_host, monitor_port), application)
+
+    def sendrecv(self, actor, msg):
+        msgstring = self._codec.dumps(msg)
+        remote = self._nodes[actor]
+        # XXX sendrecv is only used for monitoring,
+        # so it's acceptable to force the timeout value here
+        timeout = Timeout(self.monitor_timeout)
+        timeout.start()
+        try:
+            remote.send(msgstring)
+            reply = remote.recv()
+        except Timeout, exc:
+            if exc is not timeout:
+                pass
+            raise
+        finally:
+            timeout.cancel()
+        return self._codec.loads(reply)
+
 
     def start(self):
         self._publisher.start()
@@ -561,10 +619,10 @@ class AnnounceServer(object):
         msg = self._codec.loads(msgstring)
         if msg.type == 'hello':
             self._log.debug('hello from %s' % msg.src)
-            self._nodes[msg.src] = msg.uri
+            self._nodes.add(msg.src, msg.uri)
             reply = AckMessage(self._server.name)
         if msg.type == 'bye':
-            del self._nodes[msg.src]
+            self._nodes.remove(msg.src)
             reply = AckMessage(self._server.name)
         if msg.type == 'where_is':
             if msg.name not in self._nodes:
