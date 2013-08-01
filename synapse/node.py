@@ -62,7 +62,7 @@ period is 10s, and the handler call takes 5s, the total time for a loop will be
    the first event in the chain.
 
 """
-from __future__ smport with_statement
+from __future__ import with_statement
 
 import logging
 import os
