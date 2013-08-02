@@ -180,6 +180,9 @@ class NodeDirectory(object):
     def __contains__(self, name):
         return self._nodes.__contains__(name)
 
+    def __len__(self):
+        return len(self._nodes)
+
     def __getitem__(self, name):
         """
         Return a connected node.
@@ -555,7 +558,6 @@ class AnnounceServer(object):
             server = self.create_wsgiserver(
                 monitor.get('host', '0.0.0.0'),
                 monitor.get('port', 12088))
-
             self._wsgi = gevent.spawn(server.serve_forever)
 
     def create_wsgiserver(self, monitor_host, monitor_port):
@@ -629,7 +631,7 @@ class AnnounceServer(object):
                 reply = UnknownNodeMessage(msg.name)
             else:
                 node = self._nodes[msg.name]
-                reply = IsAtMessage(msg.name, node)
+                reply = IsAtMessage(msg.name, node.uri)
         return self._codec.dumps(reply)
 
 

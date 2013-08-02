@@ -428,7 +428,6 @@ class AnnouncerTestCase(TestCase):
         ack = cli1.hello(cli2._client)
         self.assertEquals(ack.type, 'ack')
         self.assertEquals(ack.src, 'announce.server')
-
         ack = cli1.where_is('cli2.announce')
         self.assertEquals(ack.type, 'is_at')
         self.assertEquals(ack.uri, srv_config['announce']['server_uri'])

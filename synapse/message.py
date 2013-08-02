@@ -230,7 +230,6 @@ class MessageCodecJSONRPC(MessageCodec):
                 'method': msg.type,
                 'params': msg.attrs,
                 'id': msg.id}
-
             return json.dumps(jsonrpc_msg, cls=DateTimeJSONEncoder)
         except Exception, err:
             raise CodecException(str(err))
