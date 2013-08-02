@@ -2,15 +2,16 @@ Source: python-synapse
 Section: python
 Priority: optional
 Maintainer: Greg Leclercq <ggl@0x80.net>
-Build-Depends: cdbs, debhelper (>= 7.0.50~)
-Standards-Version: 3.8.4
+Build-Depends: cdbs, debhelper (>= 8)
+Standards-Version: 3.9.1
 Homepage: http://github.com/ggreg/python-synapse 
 Vcs-Git: git://github.com/ggreg/python-synapse.git
 Vcs-Browser: http://github.com/ggreg/python-synapse
 
 Package: python-synapse
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, ${python:Depends}
+Provides: ${python:Provides}
 Description: Python package for distributed communications
  python-synapse provides an API to use asynchronous or synchronous message
  passing between actors. Currently it supports ZeroMQ as its transport
