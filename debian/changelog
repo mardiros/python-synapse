@@ -1,4 +1,4 @@
-python-synapse (0.4.1) unstable; urgency=low
+python-synapse (0.4.2) unstable; urgency=low
 
   * Implement a WSGI Server in the AnounceServer to monitor node status
  
