@@ -72,7 +72,6 @@ import gevent
 import gevent.core
 import gevent.event
 import gevent.queue
-import gevent.coros
 from gevent.timeout import Timeout
 from gevent.wsgi import WSGIServer
 
@@ -311,10 +310,14 @@ class Actor(object):
 
     def worker(self):
         while True:
-            msgstring = self._queue.get()
-            handler, msg = self._deserialize(msgstring)
-            result = handler(self, msg)
-            gevent.sleep(0)
+            try:
+                msgstring = self._queue.get()
+                handler, msg = self._deserialize(msgstring)
+                result = handler(self, msg)
+            except Exception as exc:
+                self._log.error('Error on async worker', exc_info=True)
+            finally:
+                gevent.sleep(0)
 
     def _deserialize(self, msgstring):
         try:
@@ -851,8 +854,11 @@ class EventPoller(Poller):
         """
         import types
         assert handler is not None
-        greenlet = gevent.spawn_link_exception(self.__spawn_handler__(handler),
-                                               *args, **kwargs)
+        greenlet = gevent.spawn(self.__spawn_handler__(handler),
+                                *args, **kwargs)
+        def exception_callback(greenlet):
+            self._log.error('Exception in greenlet %s', greenlet)
+        greenlet.link_exception(exception_callback)
         greenlet.link(lambda x: self.remove(greenlet))
         self._greenlets.append(greenlet)
         if isinstance(handler, types.FunctionType) or \
