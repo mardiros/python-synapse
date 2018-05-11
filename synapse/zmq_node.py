@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import logging
-import gevent.coros
-from gevent_zeromq import zmq
+import gevent.lock
+import zmq.green as zmq
 
 from synapse.node import Node, NodeException, registerNode as regNode
 
@@ -19,7 +19,7 @@ class ZMQNode(Node):
     def __init__(self, config):
         Node.__init__(self, config)
         self._socket = None
-        self._lock = gevent.coros.Semaphore()
+        self._lock = gevent.lock.Semaphore()
         self._log = logging.getLogger(self.name)
 
     @property
