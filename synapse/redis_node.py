@@ -49,7 +49,7 @@ class RedisNode(Node):
         self._name = config.get('name', 'ANONYMOUS')
         self._uri = config['uri']
         self._client = None
-        self._lock = gevent.coros.Semaphore()
+        self._lock = gevent.lock.Semaphore()
         self._log = logging.getLogger(self.name)
 
     @property

@@ -1,27 +1,27 @@
-python-synapse (0.4.1) unstable; urgency=low
+python-synapse (0.4.2) unstable; urgency=low
 
   * Implement a WSGI Server in the AnounceServer to monitor node status
  
- -- Guillaume Gauvrit <guillaume@gandi.net> Thu, 1 Aug 10:21:42 2013 +0200
+ -- Guillaume Gauvrit <guillaume@gandi.net>  Thu, 01 Aug 2013 10:21:42 +0200
  
 python-synapse (0.4.1) unstable; urgency=low
 
   * Change log format to support logstash 
 
- -- Guillaume Gauvrit <guillaume@gandi.net> Thu, 13 Dec 18:00:01 2012 +0100
+ -- Guillaume Gauvrit <guillaume@gandi.net>  Thu, 13 Dec 2012 18:00:01 +0100
 
 python-synapse (0.4) unstable; urgency=low
 
   * Use a queue for the node.async requests
 
- -- Guillaume Gauvrit <guillaume@gandi.net> Sat, 1 Dec 14:22:10 2012 +0100
+ -- Guillaume Gauvrit <guillaume@gandi.net>  Sat, 01 Dec 2012 14:22:10 +0100
 
 python-synapse (0.3) unstable; urgency=low
 
   * add node deconnection support
   * implement redis support for queuing
 
- -- Guillaume Gauvrit <guillaume@gandi.net> Wed, 14 Dec 15:15:45 2011 +0100
+ -- Guillaume Gauvrit <guillaume@gandi.net>  Wed, 14 Dec 2011 15:15:45 +0100
 
 python-synapse (0.2-1) unstable; urgency=low
 

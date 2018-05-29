@@ -12,10 +12,9 @@ with open(os.path.join(here, 'synapse', '__init__.py')) as v_file:
     version = re.compile(r".*__version__ = '(.*?)'",
                          re.S).match(v_file.read()).group(1)
 
-requires = ['pyzmq >= 2.1.1',
-            'gevent_zeromq == 0.2.0',
+requires = ['pyzmq==14.4.0',
             'redis',
-            'gevent == 0.13.6',
+            'gevent==1.1.1',
             'simplejson']
 
 setup(name='synapse',

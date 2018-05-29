@@ -2,11 +2,16 @@ Source: python-synapse
 Section: python
 Priority: optional
 Maintainer: Greg Leclercq <ggl@0x80.net>
-Build-Depends: cdbs, debhelper (>= 8)
-Standards-Version: 3.9.1
+Build-Depends: debhelper (>= 8), 
+ cdbs,
+ dh-python,
+ python (>= 2.7)
+Build-Depends-Indep: python-setuptools
+Standards-Version: 3.9.3
 Homepage: http://github.com/ggreg/python-synapse 
 Vcs-Git: git://github.com/ggreg/python-synapse.git
 Vcs-Browser: http://github.com/ggreg/python-synapse
+X-Python-Version: >= 2.7
 
 Package: python-synapse
 Architecture: all
